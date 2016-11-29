@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+		<StartAction>Project</StartAction>
+		<StartArguments>--resourcePrefix "D:/Atomic Editor/Resources/" --project "D:/AtomicTutorials/Racer/"</StartArguments>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+		<StartAction>Project</StartAction>
+		<StartArguments>--resourcePrefix "D:/Atomic Editor/Resources/" --project "D:/AtomicTutorials/Racer/"</StartArguments>
+	</PropertyGroup>
+</Project>

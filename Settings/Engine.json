@@ -1,0 +1,11 @@
+{
+  "desktop": {
+    "window" : {
+      "title" : "test",
+      "fullscreen" : false,
+      "resizable" : true,
+      "width" : 800,
+      "height" : 500
+    }
+  }
+}

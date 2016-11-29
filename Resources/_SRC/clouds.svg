@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 744.09448819 1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="clouds.svg">
+  <defs
+     id="defs4">
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter4202"
+       x="-0.020203271"
+       width="1.0404065"
+       y="-0.047400185"
+       height="1.0948004">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="5.187134"
+         id="feGaussianBlur4204" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter4206"
+       x="-0.026791322"
+       width="1.0535826"
+       y="-0.044330964"
+       height="1.0886619">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="5.187134"
+         id="feGaussianBlur4208" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter4210"
+       x="-0.027882303"
+       width="1.0557646"
+       y="-0.070022641"
+       height="1.1400453">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="5.187134"
+         id="feGaussianBlur4212" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="-150.80084"
+     inkscape:cy="520.07937"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1600"
+     inkscape:window-height="848"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Camada 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:#ff00ff;fill-opacity:1;stroke:none;filter:url(#filter4202)"
+       d="M 467.70117 211.91602 A 75.761444 76.771591 0 0 0 406.63086 243.39258 A 82.832512 76.771591 0 0 0 341.43164 213.93555 A 82.832512 76.771591 0 0 0 275.35742 244.56641 A 57.578693 56.568542 0 0 0 239.40625 232.11914 A 57.578693 56.568542 0 0 0 181.82812 288.6875 A 57.578693 56.568542 0 0 0 185.66992 308.97656 A 68.690376 64.649765 0 0 0 183.84766 308.89062 A 68.690376 64.649765 0 0 0 115.1582 373.53906 A 68.690376 64.649765 0 0 0 115.18555 374.25 A 308.09653 66.670067 0 0 0 72.730469 407.88477 A 308.09653 66.670067 0 0 0 380.82812 474.55469 A 308.09653 66.670067 0 0 0 688.92383 407.88477 A 308.09653 66.670067 0 0 0 629.60352 368.69141 A 56.568542 51.51778 0 0 0 636.39648 344.24609 A 56.568542 51.51778 0 0 0 579.82812 292.72656 A 56.568542 51.51778 0 0 0 541.28125 306.5957 A 75.761444 76.771591 0 0 0 543.46289 288.6875 A 75.761444 76.771591 0 0 0 467.70117 211.91602 z "
+       id="path3336"
+       inkscape:export-xdpi="35.938705"
+       inkscape:export-ydpi="35.938705"
+       inkscape:export-filename="D:\AtomicTutorials\Racer\Resources\scenarios\cloud1.png" />
+    <path
+       style="fill:#ff00ff;fill-opacity:1;stroke:none;filter:url(#filter4206)"
+       d="m -335.37119,391.72311 a 103.03556,102.02541 0 0 0 -94.57812,61.63281 62.629459,68.690376 0 0 0 -36.74024,-13.14649 62.629459,68.690376 0 0 0 -62.37109,63.00782 61.619305,51.51778 0 0 0 -54.80664,51.14062 61.619305,51.51778 0 0 0 10.3164,28.47656 232.33508,65.659912 0 0 0 -16.3789,24.05079 232.33508,65.659912 0 0 0 232.33594,65.66015 232.33508,65.659912 0 0 0 232.33398,-65.66015 232.33508,65.659912 0 0 0 -19.73828,-26.28711 87.88327,75.761444 0 0 0 9.63672,-34.32227 87.88327,75.761444 0 0 0 -87.88281,-75.76172 87.88327,75.761444 0 0 0 -11.75196,0.76953 103.03556,102.02541 0 0 0 -100.375,-79.56054 z"
+       id="path3358"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="47.101849"
+       inkscape:export-ydpi="47.101849"
+       inkscape:export-filename="D:\AtomicTutorials\Racer\Resources\scenarios\cloud2.png" />
+    <path
+       style="fill:#ff00ff;fill-opacity:1;stroke:none;filter:url(#filter4210)"
+       d="M 313.14648 830.12891 A 70.710678 45.456863 0 0 0 260.85156 845.06836 A 67.680222 45.456863 0 0 0 225.26367 838.20898 A 67.680222 45.456863 0 0 0 157.58398 883.66602 A 67.680222 45.456863 0 0 0 159.49805 894.17383 A 107.07617 56.568542 0 0 0 88.892578 947.30664 A 107.07617 56.568542 0 0 0 195.96875 1003.875 A 107.07617 56.568542 0 0 0 274.70312 985.54297 A 143.44167 52.527931 0 0 0 391.93945 1007.916 A 143.44167 52.527931 0 0 0 535.38086 955.38672 A 143.44167 52.527931 0 0 0 455.86133 908.43164 A 67.680222 40.406101 0 0 0 456.58984 902.85938 A 67.680222 40.406101 0 0 0 388.9082 862.45312 A 67.680222 40.406101 0 0 0 380.94922 862.78516 A 70.710678 45.456863 0 0 0 313.14648 830.12891 z M 287.26367 917.8418 A 70.710678 45.456863 0 0 0 290.01758 918.48828 A 143.44167 52.527931 0 0 0 288.58008 919.05273 A 107.07617 56.568542 0 0 0 287.26367 917.8418 z "
+       id="path3370"
+       inkscape:export-xdpi="48.844185"
+       inkscape:export-ydpi="48.844185"
+       inkscape:export-filename="D:\AtomicTutorials\Racer\Resources\scenarios\cloud3.png" />
+  </g>
+</svg>
