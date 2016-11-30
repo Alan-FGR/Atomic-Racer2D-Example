@@ -1,0 +1,12 @@
+*.dll
+/Cache/
+/AtomicNET/Release/
+/AtomicNET/Debug/
+*.suo
+*.cache
+*.exe
+AtomicNET/Solution/Racer.Desktop/obj/Debug/Racer.Desktop.csproj.FileListAbsolute.txt
+*.pdb
+*Debug/
+*Release/
+*Temporary*

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using AtomicEngine;
 
 public class Vehicle : CSComponent
@@ -8,6 +9,8 @@ public class Vehicle : CSComponent
     private Input _input = AtomicNET.GetSubsystem<Input>();
     private RigidBody2D _rigidBody;
     private ParticleEmitter2D _exhaustParticles;
+    private SoundSource3D _soundSource;
+    private Sound _accelSound;
     private int _horsePower;
     private int _maxSpdFwd;
     private int _maxSpdBwd;
@@ -24,11 +27,13 @@ public class Vehicle : CSComponent
             _rigidBody2D = rigidBody; _particleEmitter = particleEmitter; _particlesDistance = particlesDistance;
         }
 
-        public void ApplyNonLinearTorque(int power, int targetSpeed)
+        // Applies force and returns the work (normalized) necessary to reach the target speed
+        public float ApplyNonLinearTorque(int power, int targetSpeed)
         {
             float fraction = _rigidBody2D.AngularVelocity/targetSpeed;
             float mult = fraction > 0 ? 1-fraction : 1;
             _rigidBody2D.ApplyTorque(mult*power, true);
+            return fraction*mult;
         }
 
         public void EmitSurfaceParticles()
@@ -49,7 +54,7 @@ public class Vehicle : CSComponent
     
     public Vehicle CreateChassis(
         Vector2 colliderCenter, float colliderRadius, int massDensity, Vector3 exhaustPosition, ParticleEffect2D exhaustParticles,
-        int horsePower, int maxSpeedFwd, int maxSpeedBwd, int rollForce)
+        Sound engineSound, int horsePower, int maxSpeedFwd, int maxSpeedBwd, int rollForce)
     {
         // We set out private fields
         _horsePower = horsePower;
@@ -69,6 +74,13 @@ public class Vehicle : CSComponent
         _exhaustParticles = exhaustParticlesNode.CreateComponent<ParticleEmitter2D>();
         _exhaustParticles.SetEffect(exhaustParticles);
         
+        // We setup the engine sound
+        engineSound.SetLooped(true);
+        _soundSource = Node.CreateComponent<SoundSource3D>();
+        _soundSource.SetNearDistance(10);
+        _soundSource.SetFarDistance(50);
+        _accelSound = engineSound;
+
         // We return the Vehicle for convenience, since this function is intended to be the vehicle's init function
         return this;
     }
@@ -145,7 +157,10 @@ public class Vehicle : CSComponent
             }
             else if (isAccelerating)
             {
-                wheel.ApplyNonLinearTorque(-_horsePower, -_maxSpdFwd);
+                float work = wheel.ApplyNonLinearTorque(-_horsePower, -_maxSpdFwd);
+                _soundSource.SetFrequency((work*6+0.6f)*44100);
+                if (_soundSource.Sound != _accelSound || !_soundSource.IsPlaying())
+                    _soundSource.Play(_accelSound);
             }
             // We emit surface particles
             wheel.EmitSurfaceParticles();

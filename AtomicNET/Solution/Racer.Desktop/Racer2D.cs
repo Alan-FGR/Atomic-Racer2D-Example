@@ -13,12 +13,12 @@ internal static class Cache
 
 public class Racer2D : AppDelegate
 {
-    private static Racer2D inst;
     private static Scene _scene;
+    private static Terrain _terrain;
+
     private Viewport _viewport;
     private Camera _camera;
     private Vehicle _vehicle;
-    private static Terrain _terrain;
     private Clouds _clouds;
 
     public override void Start()
@@ -33,6 +33,18 @@ public class Racer2D : AppDelegate
         _camera.Orthographic = true;
         _camera.OrthoSize = 26;
         _viewport.Camera = _camera;
+
+        // We create a sound source for the music and the music
+        SoundSource musicSource = _scene.CreateComponent<SoundSource>();
+        Sound music = Cache.Get<Sound>("music/Happy_Bee.ogg");
+        music.SetLooped(true);
+        //musicSource.Play(music);
+        musicSource.SetSoundType("Music");
+
+        // We don't need a sound listener for the above, but we add one for the sounds and adjust the music gain
+        Audio audioSystem = GetSubsystem<Audio>();
+        audioSystem.SetListener(_camera.Node.CreateComponent<SoundListener>());
+        audioSystem.SetMasterGain("Music", 0.1f);
 
         // We create a background node which is a child of the camera so it won't move relative to it
         Node bg = _camera.Node.CreateChild("Background");
@@ -60,15 +72,30 @@ public class Racer2D : AppDelegate
         SubscribeToEvent<PostRenderUpdateEvent>(e => {_scene.GetComponent<PhysicsWorld2D>().DrawDebugGeometry(dbr,false);});
         #endif
     }
-    
-    Vehicle CreateVehicle(Vector2 position)
+
+    // This function is called after all nodes positions were updated for the current frame (UpdateEvent)
+    void PostUpdate(PostUpdateEvent eventData)
+    {
+        // We lerp the camera so it follows the vehicle smoothly
+        _camera.Node.SetPosition(
+            new Vector3(LerpVector2(_camera.Node.Position2D, _vehicle.Node.Position2D+Vector2.UnitX*10, 5*eventData.TimeStep)) + 
+            Vector3.Back*10);
+        // We tick the cloud system
+        _clouds.Tick(eventData.TimeStep, _vehicle.Node.Position.X);
+    }
+
+    #region Static Utils
+
+    // Convenience function to create node with sprite and rigidbody (optional)
+    static Vehicle CreateVehicle(Vector2 position)
     {
         Node vehicleNode = CreateSpriteNode(Cache.Get<Sprite2D>("characters/truck/vehicle.png"), 1.4f);
 
         // We create the vehicle and the chassis (CreateChassis returns the Vehicle for convenience)
         Vehicle vehicle = vehicleNode.CreateComponent<Vehicle>().CreateChassis(
-            new Vector2(-0.1f,0.4f), 1.4f, 5, 
-            new Vector3(-2f,-1,14), Cache.Get<ParticleEffect2D>("particles/smoke.pex"),
+            new Vector2(-0.1f, 0.4f), 1.4f, 5,
+            new Vector3(-2f, -1, 14), Cache.Get<ParticleEffect2D>("particles/smoke.pex"),
+            Cache.Get<Sound>("sounds/engine_sound.ogg"),
             300, 50, 5, 1500);
 
         // We create the wheels
@@ -88,21 +115,7 @@ public class Racer2D : AppDelegate
 
         return vehicle;
     }
-    
-    // This function is called after all nodes positions were updated for the current frame (UpdateEvent)
-    void PostUpdate(PostUpdateEvent eventData)
-    {
-        // We lerp the camera so it follows the vehicle smoothly
-        _camera.Node.SetPosition(
-            new Vector3(LerpVector2(_camera.Node.Position2D, _vehicle.Node.Position2D+Vector2.UnitX*10, 5*eventData.TimeStep)) + 
-            Vector3.Back*10);
-        // We tick the cloud system
-        _clouds.Tick(eventData.TimeStep, _vehicle.Node.Position.X);
-    }
 
-    #region Static Utils
-
-    // Convenience function to create node with sprite and rigidbody (optional)
     public static Node CreateSpriteNode(Sprite2D sprite, Node parent, float scale = 1f, bool addRigidBody = true)
     {
         Node n = parent.CreateChild();
