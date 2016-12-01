@@ -29,7 +29,7 @@ public class Racer2D : AppDelegate
         _scene.CreateComponent<Octree>().SetSize(new BoundingBox(1,100), 3);
         _viewport.Scene = _scene;
         _camera = _scene.CreateChild("Camera").CreateComponent<Camera>();
-        _camera.Node.Position = new Vector3(15, 0, -1);
+        _camera.Node.Position = new Vector3(50, 10, -1);
         _camera.Orthographic = true;
         _camera.OrthoSize = 26;
         _viewport.Camera = _camera;
@@ -38,13 +38,13 @@ public class Racer2D : AppDelegate
         SoundSource musicSource = _scene.CreateComponent<SoundSource>();
         Sound music = Cache.Get<Sound>("music/Happy_Bee.ogg");
         music.SetLooped(true);
-        //musicSource.Play(music);
+        musicSource.Play(music);
         musicSource.SetSoundType("Music");
 
         // We don't need a sound listener for the above, but we add one for the sounds and adjust the music gain
         Audio audioSystem = GetSubsystem<Audio>();
         audioSystem.SetListener(_camera.Node.CreateComponent<SoundListener>());
-        audioSystem.SetMasterGain("Music", 0.1f);
+        audioSystem.SetMasterGain("Music", 0.4f);
 
         // We create a background node which is a child of the camera so it won't move relative to it
         Node bg = _camera.Node.CreateChild("Background");
@@ -95,7 +95,7 @@ public class Racer2D : AppDelegate
         Vehicle vehicle = vehicleNode.CreateComponent<Vehicle>().CreateChassis(
             new Vector2(-0.1f, 0.4f), 1.4f, 5,
             new Vector3(-2f, -1, 14), Cache.Get<ParticleEffect2D>("particles/smoke.pex"),
-            Cache.Get<Sound>("sounds/engine_sound.ogg"),
+            Cache.Get<Sound>("sounds/engine_sound_crop.wav"), Cache.Get<Sound>("sounds/tires_squal_loop.wav"),
             300, 50, 5, 1500);
 
         // We create the wheels

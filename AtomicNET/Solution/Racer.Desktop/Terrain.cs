@@ -198,7 +198,6 @@ public class Terrain
     Random rng = new Random();
     void CreateDecor(Vector3 position, Vector3 leftVector)
     {
-        return;
         discard++;
         if (discard % 3 != 0)
             return;
@@ -229,6 +228,7 @@ public class Terrain
             {
                 int r = rng.Next(3) + 8;
                 n = Racer2D.CreateSpriteNode(decors[r], 4, false);
+                n.Scale2D = n.Scale2D *= 1 + rng.Next(30)/100f;
                 isTree = true;
             }
         }

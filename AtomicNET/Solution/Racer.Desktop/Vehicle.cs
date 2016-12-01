@@ -11,6 +11,7 @@ public class Vehicle : CSComponent
     private ParticleEmitter2D _exhaustParticles;
     private SoundSource3D _soundSource;
     private Sound _accelSound;
+    private Sound _brakeSound;
     private int _horsePower;
     private int _maxSpdFwd;
     private int _maxSpdBwd;
@@ -22,39 +23,50 @@ public class Vehicle : CSComponent
         private readonly ParticleEmitter2D _particleEmitter;
         private readonly float _particlesDistance;
 
+        public struct WheelDynamicsData
+        {
+            public bool IsInContact;
+            public float Resistance;
+            public float AngularVelocity;
+        }
+
         public Wheel(RigidBody2D rigidBody, ParticleEmitter2D particleEmitter, float particlesDistance)
         {
             _rigidBody2D = rigidBody; _particleEmitter = particleEmitter; _particlesDistance = particlesDistance;
         }
 
         // Applies force and returns the work (normalized) necessary to reach the target speed
-        public float ApplyNonLinearTorque(int power, int targetSpeed)
+        public WheelDynamicsData ApplyNonLinearTorque(int power, int targetSpeed, bool onlyInContact = false)
         {
+            bool inContact = EmitSurfaceParticles();
             float fraction = _rigidBody2D.AngularVelocity/targetSpeed;
             float mult = fraction > 0 ? 1-fraction : 1;
-            _rigidBody2D.ApplyTorque(mult*power, true);
-            return fraction*mult;
+            if (!onlyInContact || inContact)
+                _rigidBody2D.ApplyTorque(mult*power, true);
+            return new WheelDynamicsData
+            {
+                Resistance = fraction*mult, AngularVelocity = _rigidBody2D.AngularVelocity, IsInContact = inContact
+            };
         }
 
-        public void EmitSurfaceParticles()
+        public bool EmitSurfaceParticles()
         {
             Vector3 nearestSurfPoint = Racer2D.GetSurfacePointClosestToPoint(_rigidBody2D.Node);
             float contactDistance = Vector3.Distance(_rigidBody2D.Node.Position, nearestSurfPoint);
             if (contactDistance > _particlesDistance)
             {
                 _particleEmitter.Effect.StartColor = new Color(0, 0, 0, 0);
+                return false;
             }
-            else
-            {
-                _particleEmitter.Effect.StartColor = Color.White;
-                _particleEmitter.Node.Position = nearestSurfPoint;
-            }
+            _particleEmitter.Effect.StartColor = Color.White;
+            _particleEmitter.Node.Position = nearestSurfPoint;
+            return true;
         }
     }
     
     public Vehicle CreateChassis(
         Vector2 colliderCenter, float colliderRadius, int massDensity, Vector3 exhaustPosition, ParticleEffect2D exhaustParticles,
-        Sound engineSound, int horsePower, int maxSpeedFwd, int maxSpeedBwd, int rollForce)
+        Sound engineSound, Sound tireSound, int horsePower, int maxSpeedFwd, int maxSpeedBwd, int rollForce)
     {
         // We set out private fields
         _horsePower = horsePower;
@@ -80,6 +92,7 @@ public class Vehicle : CSComponent
         _soundSource.SetNearDistance(10);
         _soundSource.SetFarDistance(50);
         _accelSound = engineSound;
+        _brakeSound = tireSound;
 
         // We return the Vehicle for convenience, since this function is intended to be the vehicle's init function
         return this;
@@ -153,17 +166,46 @@ public class Vehicle : CSComponent
             // We give priority to braking
             if (isBraking)
             {
-                wheel.ApplyNonLinearTorque(_horsePower, _maxSpdBwd);
+                // This function also emit particles
+                Wheel.WheelDynamicsData wheelDynamics = wheel.ApplyNonLinearTorque(_horsePower, _maxSpdBwd, true);
+                Debug.WriteLine(wheelDynamics.Resistance);
+                if (wheelDynamics.IsInContact)
+                {
+                    if (_soundSource.Sound != _brakeSound || !_soundSource.IsPlaying())
+                        _soundSource.Play(_brakeSound);
+                    _soundSource.SetFrequency(48000);
+                    _soundSource.Gain = wheelDynamics.Resistance*-1;
+                    if (_soundSource.Gain > 1) _soundSource.Gain = 1;
+                }
+                else
+                {
+                    _soundSource.Stop();
+                }
             }
             else if (isAccelerating)
             {
-                float work = wheel.ApplyNonLinearTorque(-_horsePower, -_maxSpdFwd);
-                _soundSource.SetFrequency((work*6+0.6f)*44100);
+                Wheel.WheelDynamicsData wheelDynamics = wheel.ApplyNonLinearTorque(-_horsePower, -_maxSpdFwd);
+                _soundSource.SetFrequency((wheelDynamics.AngularVelocity/-40+1)*48000);
+                _soundSource.Gain += 0.03f;
+                if (_soundSource.Gain > 1) _soundSource.Gain = 1;
+                _soundSource.Gain += Math.Abs(1-wheelDynamics.Resistance*5);
                 if (_soundSource.Sound != _accelSound || !_soundSource.IsPlaying())
                     _soundSource.Play(_accelSound);
             }
-            // We emit surface particles
-            wheel.EmitSurfaceParticles();
+            else
+            {
+                if (_soundSource.Sound == _accelSound)
+                {
+                    _soundSource.SetFrequency(48000);
+                    _soundSource.Gain -= 0.01f;
+                    if (_soundSource.Gain < 0.3f) _soundSource.Gain = 0.3f;
+                }
+                else
+                    _soundSource.Stop();
+
+                // We emit surface particles anyway
+                wheel.EmitSurfaceParticles();
+            }
         }
 
         // Roll controls
