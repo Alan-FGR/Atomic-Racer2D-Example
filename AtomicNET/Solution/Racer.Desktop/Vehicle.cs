@@ -10,49 +10,57 @@ public class Vehicle : CSComponent
     private RigidBody2D _rigidBody;
     private ParticleEmitter2D _exhaustParticles;
     private SoundSource3D _soundSource;
+    private SoundSource3D _suspensionSoundSource;
     private Sound _accelSound;
     private Sound _brakeSound;
+    private Sound[] _suspensionSounds;
     private int _horsePower;
     private int _maxSpdFwd;
     private int _maxSpdBwd;
     private int _rollForce;
 
-    private struct Wheel
+    //private float lastSuspensionSound; //TODO there's no Time subsystem?
+    private DateTime lastSuspensionSound = DateTime.Now;
+
+    // We use this for the wheel logic
+    private class Wheel
     {
-        private readonly RigidBody2D _rigidBody2D;
+        private readonly RigidBody2D _rigidBody;
+        private readonly ConstraintWheel2D _constraint;
         private readonly ParticleEmitter2D _particleEmitter;
         private readonly float _particlesDistance;
 
-        public struct WheelDynamicsData
+        // This struct is used to pass wheel dynamics data
+        public struct DynamicsData
         {
             public bool IsInContact;
             public float Resistance;
             public float AngularVelocity;
         }
 
-        public Wheel(RigidBody2D rigidBody, ParticleEmitter2D particleEmitter, float particlesDistance)
+        public Wheel(RigidBody2D rigidBody, ConstraintWheel2D constraint, ParticleEmitter2D particleEmitter, float particlesDistance)
         {
-            _rigidBody2D = rigidBody; _particleEmitter = particleEmitter; _particlesDistance = particlesDistance;
+            _rigidBody = rigidBody; _constraint = constraint; _particleEmitter = particleEmitter; _particlesDistance = particlesDistance;
         }
 
         // Applies force and returns the work (normalized) necessary to reach the target speed
-        public WheelDynamicsData ApplyNonLinearTorque(int power, int targetSpeed, bool onlyInContact = false)
+        public DynamicsData ApplyNonLinearTorque(int power, int targetSpeed, bool onlyInContact = false)
         {
             bool inContact = EmitSurfaceParticles();
-            float fraction = _rigidBody2D.AngularVelocity/targetSpeed;
+            float fraction = _rigidBody.AngularVelocity/targetSpeed;
             float mult = fraction > 0 ? 1-fraction : 1;
             if (!onlyInContact || inContact)
-                _rigidBody2D.ApplyTorque(mult*power, true);
-            return new WheelDynamicsData
+                _rigidBody.ApplyTorque(mult*power, true);
+            return new DynamicsData
             {
-                Resistance = fraction*mult, AngularVelocity = _rigidBody2D.AngularVelocity, IsInContact = inContact
+                Resistance = fraction*mult, AngularVelocity = _rigidBody.AngularVelocity, IsInContact = inContact
             };
         }
-
+        // Emit particles if close to a surface point and returns true if positive
         public bool EmitSurfaceParticles()
         {
-            Vector3 nearestSurfPoint = Racer2D.GetSurfacePointClosestToPoint(_rigidBody2D.Node);
-            float contactDistance = Vector3.Distance(_rigidBody2D.Node.Position, nearestSurfPoint);
+            Vector3 nearestSurfPoint = Racer2D.GetSurfacePointClosestToPoint(_rigidBody.Node);
+            float contactDistance = Vector3.Distance(_rigidBody.Node.Position, nearestSurfPoint);
             if (contactDistance > _particlesDistance)
             {
                 _particleEmitter.Effect.StartColor = new Color(0, 0, 0, 0);
@@ -62,11 +70,18 @@ public class Vehicle : CSComponent
             _particleEmitter.Node.Position = nearestSurfPoint;
             return true;
         }
+        // Returns current suspension compression for the wheel
+        public float CurrentSuspensionCompression()
+        {
+            Vector2 anchorPosition = new Vector2(_constraint.OwnerBody.Node.WorldPosition +
+                                     _constraint.OwnerBody.Node.WorldRotation*new Vector3(_constraint.Anchor));
+            return Vector2.Distance(_constraint.OtherBody.Node.Position2D, anchorPosition);
+        }
     }
     
-    public Vehicle CreateChassis(
-        Vector2 colliderCenter, float colliderRadius, int massDensity, Vector3 exhaustPosition, ParticleEffect2D exhaustParticles,
-        Sound engineSound, Sound tireSound, int horsePower, int maxSpeedFwd, int maxSpeedBwd, int rollForce)
+    public Vehicle CreateChassis(Vector2 colliderCenter, float colliderRadius, int massDensity, Vector3 exhaustPosition,
+        ParticleEffect2D exhaustParticles, Sound engineSound, Sound tireSound, Sound[] suspensionSounds,
+        int horsePower, int maxSpeedFwd, int maxSpeedBwd, int rollForce)
     {
         // We set out private fields
         _horsePower = horsePower;
@@ -86,24 +101,25 @@ public class Vehicle : CSComponent
         _exhaustParticles = exhaustParticlesNode.CreateComponent<ParticleEmitter2D>();
         _exhaustParticles.SetEffect(exhaustParticles);
         
-        // We setup the engine sound
+        // We setup the engine sound and other sound effect
         engineSound.SetLooped(true);
         _soundSource = Node.CreateComponent<SoundSource3D>();
         _soundSource.SetNearDistance(10);
         _soundSource.SetFarDistance(50);
         _accelSound = engineSound;
         _brakeSound = tireSound;
+        _suspensionSoundSource = Node.CreateComponent<SoundSource3D>();
+        _suspensionSounds = suspensionSounds;
 
         // We return the Vehicle for convenience, since this function is intended to be the vehicle's init function
         return this;
     }
 
-    public Node CreateWheel(
-        Sprite2D sprite, Vector2 relPos, float radius, int suspensionFrequency, float suspensionDamping, ParticleEffect2D particles,
-        float distanceToEmitParticles)
+    public Node CreateWheel(Sprite2D sprite, Vector2 relativePosition, float radius, int suspensionFrequency, float suspensionDamping,
+        ParticleEffect2D particles, float distanceToEmitParticles)
     {
         Node wheelNode = Racer2D.CreateSpriteNode(sprite);
-        wheelNode.SetPosition2D(relPos);
+        wheelNode.SetPosition2D(relativePosition);
 
         // CreateSpriteNode adds a RigidBody for us, so we get it here
         RigidBody2D wheelRigidBody = wheelNode.GetComponent<RigidBody2D>();
@@ -115,19 +131,19 @@ public class Vehicle : CSComponent
         // The Box2D wheel joint provides spring for simulating suspension
         ConstraintWheel2D wheelJoint = Node.CreateComponent<ConstraintWheel2D>();
         wheelJoint.SetOtherBody(wheelRigidBody);
-        wheelJoint.SetAnchor(relPos);
+        wheelJoint.SetAnchor(relativePosition);
         wheelJoint.SetAxis(Vector2.UnitY);
         wheelJoint.SetFrequencyHz(suspensionFrequency);
         wheelJoint.SetDampingRatio(suspensionDamping);
-        
+
         // Each wheel has a particle emitter to emit particles when it's in contact with the surface
         Node particlesNode = Node.Scene.CreateChild();
-        particlesNode.SetPosition(new Vector3(relPos.X, relPos.Y, 14));
-        ParticleEmitter2D pe = particlesNode.CreateComponent<ParticleEmitter2D>();
-        pe.SetEffect(particles);
+        particlesNode.SetPosition(new Vector3(relativePosition.X, relativePosition.Y, 14));
+        ParticleEmitter2D particleEmitter = particlesNode.CreateComponent<ParticleEmitter2D>();
+        particleEmitter.SetEffect(particles);
 
         // We create a new Wheel struct and add to the _wheels list
-        _wheels.Add(new Wheel(wheelRigidBody, pe, distanceToEmitParticles));
+        _wheels.Add(new Wheel(wheelRigidBody, wheelJoint, particleEmitter, distanceToEmitParticles));
 
         return wheelNode;
     }
@@ -167,10 +183,10 @@ public class Vehicle : CSComponent
             if (isBraking)
             {
                 // This function also emit particles
-                Wheel.WheelDynamicsData wheelDynamics = wheel.ApplyNonLinearTorque(_horsePower, _maxSpdBwd, true);
-                Debug.WriteLine(wheelDynamics.Resistance);
+                Wheel.DynamicsData wheelDynamics = wheel.ApplyNonLinearTorque(_horsePower, _maxSpdBwd, true);
                 if (wheelDynamics.IsInContact)
                 {
+                    // If the wheel is in contact, we play the braking sound according to the current work in the wheel
                     if (_soundSource.Sound != _brakeSound || !_soundSource.IsPlaying())
                         _soundSource.Play(_brakeSound);
                     _soundSource.SetFrequency(48000);
@@ -184,7 +200,8 @@ public class Vehicle : CSComponent
             }
             else if (isAccelerating)
             {
-                Wheel.WheelDynamicsData wheelDynamics = wheel.ApplyNonLinearTorque(-_horsePower, -_maxSpdFwd);
+                Wheel.DynamicsData wheelDynamics = wheel.ApplyNonLinearTorque(-_horsePower, -_maxSpdFwd);
+                // We set the sound frequency according to the speed and gain according to the work being done
                 _soundSource.SetFrequency((wheelDynamics.AngularVelocity/-40+1)*48000);
                 _soundSource.Gain += 0.03f;
                 if (_soundSource.Gain > 1) _soundSource.Gain = 1;
@@ -194,6 +211,7 @@ public class Vehicle : CSComponent
             }
             else
             {
+                // If it's not receiving any input, fades out engine sound or stop other sounds
                 if (_soundSource.Sound == _accelSound)
                 {
                     _soundSource.SetFrequency(48000);
@@ -223,6 +241,19 @@ public class Vehicle : CSComponent
         _exhaustParticles.Effect.SpeedVariance = currentVelocity.LengthFast * 10;
         _exhaustParticles.Effect.Angle = -Node.Rotation2D + 
             (float)(Math.Atan2(currentVelocity.X - 5, -currentVelocity.Y) * (360 / (Math.PI * 2))) - 90;
+
+        // Suspension sounds
+        foreach (Wheel wheel in _wheels)
+        {
+            if (wheel.CurrentSuspensionCompression() > 0.7f)
+            {
+                if (DateTime.Now - lastSuspensionSound > TimeSpan.FromMilliseconds(500))
+                {
+                    lastSuspensionSound=DateTime.Now;
+                    _suspensionSoundSource.Play(_suspensionSounds[new Random().Next(_suspensionSounds.Length)]);
+                }
+            }
+        }
 
     }
 }
